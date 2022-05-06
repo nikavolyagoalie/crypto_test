@@ -11,45 +11,64 @@
             :class="{ active: idx == currentIndex }"
             @click="setActiveCrypto(crypto, idx)"
           >
-            {{ item }}
+            {{ crypto.name }}
+            <div>
+              <input
+                type="text"
+                class="form-control"
+                :placeholder="`Enter ${crypto.symbol} count`"
+                v-model="field[crypto.id]"
+              />
+            </div>
           </li>
+          <div>
+            <ul class="crypto__inCurrence">
+              <li>
+                {{ Bitcoin }}
+                <span>{{ ourCurrencies[0] }}</span>
+              </li>
+              <li>
+                {{ Ethereum }}
+                <span>{{ ourCurrencies[0] }}</span>
+              </li>
+            </ul>
+          </div>
         </template>
       </ul>
     </div>
     <div class="col-md-6">
-      <div v-if="currentCrypto">
-        <h4>Crypto</h4>
-        <div>
-          <label><strong>Title:</strong></label> {{ currentCrypto.title }}
-        </div>
-        <div>
-          <label><strong>Description:</strong></label>
-          {{ currentCrypto.description }}
-        </div>
-        <div>
-          <label><strong>Status:</strong></label>
-          {{ currentCrypto.published ? "Published" : "Pending" }}
-        </div>
-      </div>
-      <div v-else>
-        <br />
-        <p>Please click on a Crypto...</p>
-      </div>
+      <h4>Crypto Graphics</h4>
+      <Chart/>
     </div>
   </div>
 </template>
 <script>
 import CryptoDataService from "../services/CryptoDataService";
+import Chart from "./charts/LineChart.vue"
 
 export default {
   name: "crypto-list",
+  components: {
+    Chart
+  },
   data() {
     return {
       crypto_list: [],
       currentCrypto: false,
       currentIndex: -1,
-      title: "",
+      field: {
+        bitcoin: "",
+        ethereum: "",
+      },
+      converters: {
+        bitcoin: 0,
+        ethereum: 0,
+      },
       ourCryptos: ["bitcoin", "ethereum"],
+      crypto_prices: [],
+      ourCurrencies: ["usd"],
+      crypto_prices_dayly: [],
+      days: 14,
     };
   },
 
@@ -70,10 +89,66 @@ export default {
           console.log(e);
         });
     },
+
+    makeCryptoPriceInCurrence(crypto, currence, num) {
+      CryptoDataService.getCryptoInCurrence(crypto, currence)
+        .then((res) => {
+          let price = res.data;
+          this.crypto_prices[num] = Number(price[crypto][currence]);
+          console.log(price[crypto][currence]);
+          console.log(this.crypto_prices);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
+
+    dataCryptoInCurrenceDaily(crypto, currence, days, num) {
+      CryptoDataService.getCryptoInCurrenceDaily(crypto, currence, days)
+        .then((res) => {
+          let prices = res.data;
+          this.crypto_prices_dayly[num] = prices.prices;
+          console.log(this.crypto_prices_dayly);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
   },
 
-  mounted() {
+  async mounted() {
+    this.dataCryptoInCurrenceDaily(
+      this.ourCryptos[0],
+      this.ourCurrencies[0],
+      this.days,
+      0
+    );
+    this.dataCryptoInCurrenceDaily(
+      this.ourCryptos[1],
+      this.ourCurrencies[0],
+      this.days,
+      1
+    );
+    this.makeCryptoPriceInCurrence(
+      this.ourCryptos[0],
+      this.ourCurrencies[0],
+      0
+    );
+    this.makeCryptoPriceInCurrence(
+      this.ourCryptos[1],
+      this.ourCurrencies[0],
+      1
+    );
     this.retrieveCryptoList();
+  },
+
+  computed: {
+    Bitcoin() {
+      return this.crypto_prices[0] * this.field["bitcoin"];
+    },
+    Ethereum() {
+      return this.crypto_prices[1] * this.field["ethereum"];
+    },
   },
 };
 </script>

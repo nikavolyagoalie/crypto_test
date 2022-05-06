@@ -3,6 +3,12 @@ class CryptoDataService {
   getAll() {
     return http.get("/coins/list");
   }
+  getCryptoInCurrence(crypto, currence) {
+    return http.get(`/simple/price?ids=${crypto}&vs_currencies=${currence}`)
+  }
+  getCryptoInCurrenceDaily(crypto, currence, days) {
+    return http.get(`/coins/${crypto}/market_chart?vs_currency=${currence}&days=${days}&interval=daily`)
+  }
 //   get(id) {
 //     return http.get(`/tutorials/${id}`);
 //   }
