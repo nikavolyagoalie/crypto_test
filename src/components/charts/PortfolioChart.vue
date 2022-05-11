@@ -41,8 +41,9 @@ export default {
     loaded: false,
     cryptos: [crypto],
     chartData: null,
+    cryptoNow: 5
   }),
-  mounted() {
+  mounted() { 
     this.loaded = false;
     this.updateCharts()
     // await axios
@@ -68,7 +69,7 @@ export default {
         datasets: [
           {
             label: "Bitcoin",
-            data: [5],
+            data: [this.cryptoNow],
             backgroundColor: "red",
           },
         ],
